@@ -1,0 +1,145 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Firebase Chat</title>
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            margin: 0;
+            padding: 0;
+            display: flex;
+            flex-direction: column;
+            height: 100vh;
+        }
+
+        #chat-box {
+            flex: 1;
+            overflow-y: auto;
+            padding: 10px;
+            border: 1px solid #ccc;
+            margin: 10px;
+            background-color: #f9f9f9;
+        }
+
+        #input-area {
+            display: flex;
+            padding: 10px;
+            border-top: 1px solid #ccc;
+        }
+
+        #message-input {
+            flex: 1;
+            padding: 10px;
+            border: 1px solid #ccc;
+            border-radius: 5px;
+            margin-right: 10px;
+        }
+
+        #send-button {
+            padding: 10px 20px;
+            background-color: #007bff;
+            color: white;
+            border: none;
+            border-radius: 5px;
+            cursor: pointer;
+        }
+
+        #send-button:hover {
+            background-color: #0056b3;
+        }
+    </style>
+</head>
+
+<body>
+    <div id="chat-box"></div>
+    <div id="input-area">
+        <input type="text" id="message-input" placeholder="Введите сообщение">
+        <button id="send-button">Отправить</button>
+    </div>
+
+    <script type="module">
+        // Import Firebase modules
+        import { initializeApp } from "https://www.gstatic.com/firebasejs/9.17.2/firebase-app.js";
+        import { getDatabase, ref, set, push, onValue } from "https://www.gstatic.com/firebasejs/9.17.2/firebase-database.js";
+
+
+
+        // Firebase configuration
+        const firebaseConfig = {
+            apiKey: "AIzaSyAQ1zg6sKLaVzJqYuEafThI4XejCYfCohs",
+            authDomain: "chats-ba45b.firebaseapp.com",
+            projectId: "chats-ba45b",
+            databaseURL: "https://chats-ba45b-default-rtdb.firebaseio.com/",
+            storageBucket: "chats-ba45b.firebasestorage.app",
+            messagingSenderId: "864067670954",
+            appId: "1:864067670954:web:80c4d72da5cc6a135e11d3",
+            measurementId: "G-DF83BBL8MS"
+        };
+
+        // Initialize Firebase
+        const app = initializeApp(firebaseConfig);
+        const db = getDatabase(app);
+
+        // DOM elements
+        const chatBox = document.getElementById('chat-box');
+        const messageInput = document.getElementById('message-input');
+        const sendButton = document.getElementById('send-button');
+
+        // Function to send a message
+        function sendMessage(user, text) {
+            const messagesRef = ref(db, 'messages');
+            const newMessageRef = push(messagesRef);
+            set(newMessageRef, {
+                user: user,
+                text: text,
+                timestamp: Date.now()
+            });
+        }
+
+        // Function to display messages
+        function displayMessages(messages) {
+            chatBox.innerHTML = '';
+            for (const key in messages) {
+                const message = messages[key];
+                const div = document.createElement('div');
+                div.textContent = `${message.user}: ${message.text}`;
+                chatBox.appendChild(div);
+            }
+            chatBox.scrollTop = chatBox.scrollHeight;
+        }
+
+        // Function to listen for new messages
+        function listenForMessages() {
+            const messagesRef = ref(db, 'messages');
+            onValue(messagesRef, (snapshot) => {
+                const messages = snapshot.val();
+                if (messages) {
+                    displayMessages(messages);
+                }
+            });
+        }
+
+        // Event listeners
+        sendButton.addEventListener('click', () => {
+            const text = messageInput.value;
+            if (text.trim()) {
+                sendMessage("User1", text);
+                messageInput.value = '';
+            }
+        });
+
+        messageInput.addEventListener('keypress', (event) => {
+            if (event.key === 'Enter') {
+                sendButton.click();
+            }
+        });
+
+        // Start listening for messages
+        listenForMessages();
+    </script>
+</body>
+
+</html>
